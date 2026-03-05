@@ -4,8 +4,7 @@ import java.util.Scanner;
 public class Main {
     public static void main(String[] args) {
         String castle = "🏰";
-        int sizeBoard = 7;
-        Person person = new Person(sizeBoard);
+        int sizeBoard = 7; // Поле 7x7
         int step = 0;
         String[][] board = new String[sizeBoard][sizeBoard];
 
@@ -15,6 +14,7 @@ public class Main {
             }
         }
 
+        // Монстры
         int countMonster = sizeBoard * sizeBoard - sizeBoard - 8;
         Random r = new Random();
         Monster[] arrMonster = new Monster[countMonster + 1];
@@ -39,6 +39,7 @@ public class Main {
             }
         }
 
+        // Аптечки
         int countPacks = 3;
         HealthPack[] healthPacks = new HealthPack[countPacks];
         for (int i = 0; i < countPacks; i++) {
@@ -51,6 +52,7 @@ public class Main {
             }
         }
 
+        // Телепорты
         int countTeleports = 2;
         Teleport[] teleports = new Teleport[countTeleports];
         for (int i = 0; i < countTeleports; i++) {
@@ -63,9 +65,33 @@ public class Main {
             }
         }
 
+        // Замок (всегда на верхней строке, случайная колонка)
         int castleX = r.nextInt(sizeBoard);
         int castleY = 0;
         board[castleY][castleX] = castle;
+
+        // ===== РАНДОМНЫЙ СПАВН ПЕРСОНАЖА =====
+        // Ищем пустую клетку для персонажа
+        Person person = null;
+        boolean foundEmptySpot = false;
+        int spawnX = 1, spawnY = 1; // значения по умолчанию
+
+        while (!foundEmptySpot) {
+            int tryX = r.nextInt(sizeBoard) + 1;
+            int tryY = r.nextInt(sizeBoard) + 1;
+
+            // Проверяем, свободна ли клетка
+            if (board[tryY - 1][tryX - 1].equals("  ")) {
+                spawnX = tryX;
+                spawnY = tryY;
+                foundEmptySpot = true;
+            }
+        }
+
+        // Создаём персонажа и устанавливаем его в найденную позицию
+        person = new Person(sizeBoard);
+        person.move(spawnX, spawnY);
+        // ====================================
 
         Scanner sc = new Scanner(System.in);
         System.out.println("Привет! Ты готов начать играть в игру? (Напиши: ДА или НЕТ)");
@@ -89,6 +115,7 @@ public class Main {
                     if (person.moveCorrect(x, y)) {
                         String next = board[y - 1][x - 1];
 
+                        // Проверка аптечек
                         for (HealthPack hp : healthPacks) {
                             if (hp != null && hp.isPlayerOnPack(x, y)) {
                                 person.upLive();
@@ -99,6 +126,7 @@ public class Main {
                             }
                         }
 
+                        // Проверка телепортов
                         boolean teleported = false;
                         for (Teleport tp : teleports) {
                             if (tp != null && tp.isPlayerOnTeleport(x, y)) {
@@ -122,16 +150,19 @@ public class Main {
                             continue;
                         }
 
+                        // Пустая клетка
                         if (next.equals("  ") || next.equals("💊")) {
                             board[person.getY() - 1][person.getX() - 1] = "  ";
                             person.move(x, y);
                             step++;
                             System.out.println("Ход корректный; Ход номер: " + step);
                         }
+                        // Замок
                         else if (next.equals(castle)) {
                             System.out.println("🏆 Вы прошли игру!");
                             return;
                         }
+                        // Монстры
                         else {
                             for (Monster monster : arrMonster) {
                                 if (monster != null && monster.conflictPerson(x, y)) {
@@ -164,12 +195,20 @@ public class Main {
             default:
                 System.out.println("Данные введены некорректно");
         }
+
+        sc.close();
     }
 
     static void outputBoard(String[][] board, int live) {
         String leftBlock = "| ";
         String rightBlock = "|";
-        String wall = "+ —— + —— + —— + —— + —— + —— + —— +";
+
+        // Адаптивный размер стены под размер поля
+        StringBuilder wallBuilder = new StringBuilder("+");
+        for (int i = 0; i < board.length; i++) {
+            wallBuilder.append(" —— +");
+        }
+        String wall = wallBuilder.toString();
 
         for (String[] raw : board) {
             System.out.println(wall);
