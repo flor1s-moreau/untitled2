@@ -3,8 +3,8 @@ import java.util.Scanner;
 
 public class Main {
     public static void main(String[] args) {
-        String castle = "\ud83c\udff0";
-        int sizeBoard = 5;
+        String castle = "🏰";
+        int sizeBoard = 7;
         Person person = new Person(sizeBoard);
         int step = 0;
         String[][] board = new String[sizeBoard][sizeBoard];
@@ -15,8 +15,7 @@ public class Main {
             }
         }
 
-        // Монстры
-        int countMonster = sizeBoard * sizeBoard - sizeBoard - 8; // чуть меньше, чтобы оставить место аптечкам
+        int countMonster = sizeBoard * sizeBoard - sizeBoard - 8;
         Random r = new Random();
         Monster[] arrMonster = new Monster[countMonster + 1];
         int count = 0;
@@ -27,7 +26,7 @@ public class Main {
                 test = new Monster(sizeBoard);
             } else {
                 if (r.nextBoolean()) {
-                    test = new HangmanMonster(sizeBoard); // добавляем виселицу
+                    test = new HangmanMonster(sizeBoard);
                 } else {
                     test = new Monster(sizeBoard);
                 }
@@ -40,7 +39,6 @@ public class Main {
             }
         }
 
-        // Аптечки
         int countPacks = 3;
         HealthPack[] healthPacks = new HealthPack[countPacks];
         for (int i = 0; i < countPacks; i++) {
@@ -49,11 +47,22 @@ public class Main {
                 board[hp.getY() - 1][hp.getX() - 1] = hp.getImage();
                 healthPacks[i] = hp;
             } else {
-                i--; // повтор, если место занято
+                i--;
             }
         }
 
-        // Замок
+        int countTeleports = 2;
+        Teleport[] teleports = new Teleport[countTeleports];
+        for (int i = 0; i < countTeleports; i++) {
+            Teleport tp = new Teleport(sizeBoard);
+            if (board[tp.getY() - 1][tp.getX() - 1].equals("  ")) {
+                board[tp.getY() - 1][tp.getX() - 1] = tp.getImage();
+                teleports[i] = tp;
+            } else {
+                i--;
+            }
+        }
+
         int castleX = r.nextInt(sizeBoard);
         int castleY = 0;
         board[castleY][castleX] = castle;
@@ -80,7 +89,6 @@ public class Main {
                     if (person.moveCorrect(x, y)) {
                         String next = board[y - 1][x - 1];
 
-                        // Проверка аптечек
                         for (HealthPack hp : healthPacks) {
                             if (hp != null && hp.isPlayerOnPack(x, y)) {
                                 person.upLive();
@@ -91,16 +99,40 @@ public class Main {
                             }
                         }
 
+                        boolean teleported = false;
+                        for (Teleport tp : teleports) {
+                            if (tp != null && tp.isPlayerOnTeleport(x, y)) {
+                                int[] newPos = Teleport.findRandomEmptyCell(board, sizeBoard, x, y);
+                                int newX = newPos[0];
+                                int newY = newPos[1];
+
+                                board[person.getY() - 1][person.getX() - 1] = "  ";
+                                person.move(newX, newY);
+                                tp.deactivate();
+                                board[y - 1][x - 1] = "  ";
+
+                                System.out.println("🌀 Вас телепортировало! Новые координаты: (" + newX + ", " + newY + ")");
+                                teleported = true;
+                                step++;
+                                break;
+                            }
+                        }
+
+                        if (teleported) {
+                            continue;
+                        }
+
                         if (next.equals("  ") || next.equals("💊")) {
                             board[person.getY() - 1][person.getX() - 1] = "  ";
                             person.move(x, y);
                             step++;
                             System.out.println("Ход корректный; Ход номер: " + step);
-                        } else if (next.equals(castle)) {
+                        }
+                        else if (next.equals(castle)) {
                             System.out.println("🏆 Вы прошли игру!");
                             return;
-                        } else {
-                            // Встреча с монстром
+                        }
+                        else {
                             for (Monster monster : arrMonster) {
                                 if (monster != null && monster.conflictPerson(x, y)) {
                                     if (monster.taskMonster(difficultGame)) {
@@ -137,7 +169,7 @@ public class Main {
     static void outputBoard(String[][] board, int live) {
         String leftBlock = "| ";
         String rightBlock = "|";
-        String wall = "+ —— + —— + —— + —— + —— +";
+        String wall = "+ —— + —— + —— + —— + —— + —— + —— +";
 
         for (String[] raw : board) {
             System.out.println(wall);

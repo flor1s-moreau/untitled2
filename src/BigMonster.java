@@ -11,7 +11,7 @@ public class BigMonster extends Monster {
     public boolean taskMonster(int difficultGame) {
         System.out.println("Решите задачу:");
         if (difficultGame == 1) {
-            return super.taskMonster(1); // или просто базовый вызов
+            return super.taskMonster(1);
         } else {
             int x = r.nextInt(10 * (difficultGame - 1), 10 * difficultGame);
             int y = r.nextInt(10 * (difficultGame - 1), 10 * difficultGame);

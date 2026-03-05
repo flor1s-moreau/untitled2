@@ -7,7 +7,6 @@ public class Monster {
     Random r = new Random();
 
     Monster(int sizeBoard) {
-        // координаты от 1 до sizeBoard
         this.x = r.nextInt(sizeBoard) + 1;
         this.y = r.nextInt(sizeBoard) + 1;
     }
