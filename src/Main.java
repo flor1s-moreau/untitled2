@@ -4,7 +4,7 @@ import java.util.Scanner;
 public class Main {
     public static void main(String[] args) {
         String castle = "🏰";
-        int sizeBoard = 7; // Поле 7x7
+        int sizeBoard = 7;
         int step = 0;
         String[][] board = new String[sizeBoard][sizeBoard];
 
